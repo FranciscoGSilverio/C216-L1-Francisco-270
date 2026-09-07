@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: c216-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    # Healthcheck básico: o container só é considerado saudável quando o
+    # PostgreSQL aceita conexões. O `$$` escapa a variável para que ela seja
+    # expandida pelo shell do container, e não pelo Compose.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - c216-network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: c216-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "${BACKEND_PORT}:8000"
+    # Bind mount do código-fonte para que o --reload do Uvicorn funcione
+    # sem necessidade de rebuild da imagem a cada alteração.
+    volumes:
+      - ./backend:/app
+    # Só sobe depois que o healthcheck do banco passa.
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - c216-network
+
+volumes:
+  postgres_data:
+
+networks:
+  c216-network:
+    driver: bridge
