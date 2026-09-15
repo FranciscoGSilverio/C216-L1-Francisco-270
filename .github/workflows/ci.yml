@@ -59,7 +59,7 @@ jobs:
           cache-dependency-path: backend/poetry.lock
 
       - name: Instala as dependências
-        run: poetry install --no-root
+        run: poetry install
 
       - name: Executa os testes
         run: poetry run pytest
