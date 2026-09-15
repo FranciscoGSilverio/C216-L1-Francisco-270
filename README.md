@@ -11,4 +11,4 @@ make install   # instala as dependências via Poetry
 make test      # executa a suíte de testes
 ```
 
-Os testes também rodam automaticamente via GitHub Actions (`.github/workflows/ci.yml`) a cada `push` e `pull request`, instalando as dependências com Poetry e executando `poetry run pytest`.
+Os testes também rodam automaticamente via GitHub Actions (`.github/workflows/ci.yml`) a cada `push` e `pull request`, com dois jobs em paralelo: `lint` (`ruff format --check` e `ruff check`) e `test` (`poetry run pytest`).
