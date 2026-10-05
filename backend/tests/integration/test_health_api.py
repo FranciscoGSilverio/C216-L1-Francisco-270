@@ -1,20 +1,4 @@
 import pytest
-from fastapi.testclient import TestClient
-
-from app.main import app, home, status
-
-
-@pytest.fixture
-def client():
-    return TestClient(app)
-
-
-def test_home_function_returns_greeting_message():
-    assert home() == {"message": "Olá, Sistemas Distribuídos!"}
-
-
-def test_status_function_returns_online():
-    assert status() == {"status": "online"}
 
 
 def test_home_endpoint_returns_200(client):

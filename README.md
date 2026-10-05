@@ -2,9 +2,30 @@
 
 Repositório da disciplina C216 (Sistemas Distribuídos) — entregas práticas.
 
+## Backend
+
+A API é organizada em camadas:
+
+```text
+backend/src/app/
+├── main.py               # inicialização da aplicação e registro dos routers
+├── api/routes/            # endpoints HTTP (health, items)
+├── schemas/                # modelos Pydantic
+├── services/                # regras de negócio
+└── repositories/            # acesso aos dados (em memória, por enquanto)
+```
+
 ## Testes
 
-O backend usa [Pytest](https://docs.pytest.org/) para os testes automatizados. Para executá-los localmente:
+O backend usa [Pytest](https://docs.pytest.org/) para os testes automatizados, separados em unitários e de integração:
+
+```text
+backend/tests/
+├── unit/          # testam a camada de serviço diretamente, sem HTTP
+└── integration/   # testam os endpoints via TestClient
+```
+
+Para executá-los localmente:
 
 ```bash
 make install   # instala as dependências via Poetry
