@@ -1,12 +1,25 @@
 .PHONY: help install test lint format run clean \
-        env up down build logs ps restart backend-shell db-shell docker-test docker-clean
+        env up down build logs ps restart backend-shell db-shell docker-test docker-clean \
+        db-upgrade db-migration db-current
 
 BACKEND_DIR := backend
 POETRY := cd $(BACKEND_DIR) && poetry
 PYTEST := $(POETRY) run pytest
 UVICORN := $(POETRY) run uvicorn
 RUFF := $(POETRY) run ruff
+ALEMBIC := $(POETRY) run alembic
 COMPOSE := docker compose
+
+# DATABASE_URL para comandos nativos (fora do Docker): aponta para o
+# PostgreSQL do Compose via localhost, lendo as credenciais do .env — o
+# mesmo padrão já usado pelo db-shell. Dentro dos containers (docker-test,
+# docker compose up) a URL correta (host "db") já vem do próprio .env via
+# env_file.
+DB_USER := $(shell grep -E '^POSTGRES_USER=' .env 2>/dev/null | cut -d= -f2)
+DB_PASSWORD := $(shell grep -E '^POSTGRES_PASSWORD=' .env 2>/dev/null | cut -d= -f2)
+DB_NAME := $(shell grep -E '^POSTGRES_DB=' .env 2>/dev/null | cut -d= -f2)
+DB_PORT := $(shell grep -E '^POSTGRES_PORT=' .env 2>/dev/null | cut -d= -f2)
+DATABASE_URL_LOCAL := postgresql+psycopg://$(DB_USER):$(DB_PASSWORD)@localhost:$(DB_PORT)/$(DB_NAME)
 
 help:
 	@echo "Comandos disponíveis:"
@@ -31,12 +44,17 @@ help:
 	@echo "    make db-shell       - abre o psql no container do banco"
 	@echo "    make docker-test    - executa os testes dentro do container"
 	@echo "    make docker-clean   - remove containers, volumes e imagens"
+	@echo ""
+	@echo "  Banco de dados:"
+	@echo "    make db-upgrade             - aplica as migrations pendentes"
+	@echo "    make db-migration msg=\"...\" - cria uma nova migration (autogenerate)"
+	@echo "    make db-current             - mostra a revisão atual do banco"
 
 install:
 	$(POETRY) install
 
 test:
-	$(PYTEST)
+	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(PYTEST)
 
 lint:
 	$(RUFF) check .
@@ -45,7 +63,7 @@ format:
 	$(RUFF) format .
 
 run:
-	$(UVICORN) app.main:app --reload --app-dir src
+	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(UVICORN) app.main:app --reload --app-dir src
 
 clean:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
@@ -86,3 +104,12 @@ docker-test:
 
 docker-clean:
 	$(COMPOSE) down -v --rmi local
+
+db-upgrade:
+	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(ALEMBIC) upgrade head
+
+db-migration:
+	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(ALEMBIC) revision --autogenerate -m "$(msg)"
+
+db-current:
+	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(ALEMBIC) current
