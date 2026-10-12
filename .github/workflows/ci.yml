@@ -44,6 +44,24 @@ jobs:
       run:
         working-directory: backend
 
+    services:
+      db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: c216
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d c216"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@localhost:5432/c216
+
     steps:
       - name: Checkout do código
         uses: actions/checkout@v4
@@ -60,6 +78,9 @@ jobs:
 
       - name: Instala as dependências
         run: poetry install
+
+      - name: Aplica as migrations
+        run: poetry run alembic upgrade head
 
       - name: Executa os testes
         run: poetry run pytest
