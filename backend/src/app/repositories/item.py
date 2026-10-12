@@ -1,46 +1,59 @@
-from app.schemas.item import Item, ItemCreate, ItemUpdate
+from sqlalchemy import select
+from sqlalchemy.orm import Session
+
+from app.models.item import Item
+from app.schemas.item import ItemCreate, ItemUpdate
 
 
-class InMemoryItemRepository:
-    def __init__(self) -> None:
-        self._items: dict[int, Item] = {}
-        self._next_id = 1
+class ItemRepository:
+    def __init__(self, db: Session) -> None:
+        self.db = db
 
-    def list(self) -> list[Item]:
-        return list(self._items.values())
+    def list(self, limit: int | None = None) -> list[Item]:
+        statement = select(Item)
+        if limit is not None:
+            statement = statement.limit(limit)
+
+        return list(self.db.scalars(statement))
 
     def get(self, item_id: int) -> Item | None:
-        return self._items.get(item_id)
+        return self.db.get(Item, item_id)
 
     def add(self, data: ItemCreate) -> Item:
-        item = Item(id=self._next_id, **data.model_dump())
-        self._items[item.id] = item
-        self._next_id += 1
+        item = Item(**data.model_dump())
+        self.db.add(item)
+        self.db.commit()
+        self.db.refresh(item)
         return item
 
     def replace(self, item_id: int, data: ItemCreate) -> Item | None:
-        if item_id not in self._items:
+        item = self.get(item_id)
+        if item is None:
             return None
 
-        item = Item(id=item_id, **data.model_dump())
-        self._items[item_id] = item
+        item.name = data.name
+        item.description = data.description
+        self.db.commit()
+        self.db.refresh(item)
         return item
 
     def update(self, item_id: int, data: ItemUpdate) -> Item | None:
-        current = self._items.get(item_id)
-        if current is None:
+        item = self.get(item_id)
+        if item is None:
             return None
 
-        updated = current.model_copy(update=data.model_dump(exclude_unset=True))
-        self._items[item_id] = updated
-        return updated
+        for field, value in data.model_dump(exclude_unset=True).items():
+            setattr(item, field, value)
+
+        self.db.commit()
+        self.db.refresh(item)
+        return item
 
     def delete(self, item_id: int) -> bool:
-        return self._items.pop(item_id, None) is not None
+        item = self.get(item_id)
+        if item is None:
+            return False
 
-    def reset(self) -> None:
-        self._items.clear()
-        self._next_id = 1
-
-
-repository = InMemoryItemRepository()
+        self.db.delete(item)
+        self.db.commit()
+        return True
