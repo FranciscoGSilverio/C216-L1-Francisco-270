@@ -63,3 +63,56 @@ make test      # executa a suíte de testes
 ```
 
 Os testes também rodam automaticamente via GitHub Actions (`.github/workflows/ci.yml`) a cada `push` e `pull request`, com dois jobs em paralelo: `lint` (`ruff format --check` e `ruff check`) e `test` (sobe um serviço de PostgreSQL, aplica as migrations com `poetry run alembic upgrade head` e executa `poetry run pytest`).
+
+## Frontend
+
+Aplicação React (JavaScript, sem TypeScript) que permite cadastrar e listar
+itens (nome e descrição) **em memória**, sem consumir o backend — a
+integração com a API fica para a Prática 7.
+
+```text
+frontend/src/
+├── main.jsx              # ponto de entrada, renderiza <App />
+├── App.jsx                # guarda o estado dos itens
+├── validation.js           # regra de validação (função pura)
+├── index.css                 # @import "tailwindcss"
+└── components/
+    ├── ItemForm.jsx      # formulário (nome + descrição)
+    └── ItemList.jsx      # listagem e estado vazio
+```
+
+Estilização com Tailwind CSS (via plugin do Vite, sem `tailwind.config.js`),
+lint e formatação com [Biome](https://biomejs.dev/) (equivalente ao Ruff do
+backend).
+
+```bash
+make frontend-install   # instala as dependências (npm ci)
+make frontend-dev       # inicia o servidor de desenvolvimento (Vite)
+make frontend-lint      # verifica o código
+make frontend-format    # formata o código
+```
+
+### Testes do frontend
+
+Os testes são organizados em três níveis:
+
+```text
+frontend/tests/
+├── unit/          # Vitest + React Testing Library: funções e componentes isolados
+├── integration/   # Vitest + RTL: formulário e lista trabalhando juntos no App
+└── e2e/           # Playwright: fluxo completo no navegador
+```
+
+```bash
+make frontend-test       # testes unitários e de integração (Vitest)
+make frontend-build      # build de produção
+make frontend-test-e2e   # testes end-to-end (Playwright, inicia o Vite automaticamente)
+```
+
+`make check-all` executa a suíte completa do backend (Ruff + Pytest) e do
+frontend (Biome, Vitest, build e Playwright).
+
+Os testes do frontend também rodam via GitHub Actions
+(`.github/workflows/ci-frontend.yml`), disparado em pull requests e em
+pushes na `main` que alterem `frontend/**`: `npm ci`, lint, verificação de
+formatação, Vitest, build e os testes E2E com Playwright (Chromium).
