@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
-import { expect, it } from "vitest";
+import userEvent from "@testing-library/user-event";
+import { expect, it, vi } from "vitest";
 import { ItemList } from "../../src/components/ItemList";
 
 it("mostra a mensagem de lista vazia quando não há itens", () => {
@@ -21,4 +22,19 @@ it("renderiza nome e descrição de cada item", () => {
   expect(screen.getByText("Caneta")).toBeInTheDocument();
   expect(screen.getByText("Azul")).toBeInTheDocument();
   expect(screen.getByText("Caderno")).toBeInTheDocument();
+});
+
+it("repassa onEdit e onDelete para cada linha", async () => {
+  const onDelete = vi.fn();
+  render(
+    <ItemList
+      items={[{ id: 1, name: "Caneta", description: "" }]}
+      onEdit={vi.fn()}
+      onDelete={onDelete}
+    />,
+  );
+
+  await userEvent.click(screen.getByRole("button", { name: "Excluir Caneta" }));
+
+  expect(onDelete).toHaveBeenCalledWith(1);
 });

@@ -5,16 +5,26 @@ export function ItemForm({ onAdd }) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const result = validateItem({ name, description });
     setErrors(result.errors);
+    setSubmitError("");
     if (Object.keys(result.errors).length > 0) return;
 
-    onAdd(result.values);
-    setName("");
-    setDescription("");
+    setSubmitting(true);
+    try {
+      await onAdd(result.values);
+      setName("");
+      setDescription("");
+    } catch (error) {
+      setSubmitError(error.message);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -53,9 +63,15 @@ export function ItemForm({ onAdd }) {
           className="w-full rounded border border-slate-300 p-2"
         />
       </div>
+      {submitError && (
+        <p role="alert" className="text-sm text-red-700">
+          {submitError}
+        </p>
+      )}
       <button
         type="submit"
-        className="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 sm:w-auto"
+        disabled={submitting}
+        className="w-full rounded bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700 disabled:opacity-60 sm:w-auto"
       >
         Adicionar
       </button>

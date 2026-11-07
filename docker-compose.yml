@@ -40,6 +40,44 @@ services:
     depends_on:
       db:
         condition: service_healthy
+    # A imagem slim não tem curl, então o healthcheck usa o urllib do Python.
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/status', timeout=3)"
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - c216-network
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: c216-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT}:5173"
+    environment:
+      VITE_API_URL: ${VITE_API_URL}
+    # Bind mount para o HMR do Vite; o volume anônimo preserva o node_modules
+    # instalado na imagem (não é sobrescrito pelo diretório local).
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      backend:
+        condition: service_healthy
+    # Alpine/busybox: usa wget, que já vem na imagem.
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:5173"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
     networks:
       - c216-network
 
