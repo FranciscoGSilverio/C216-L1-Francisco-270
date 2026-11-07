@@ -4,12 +4,18 @@ on:
   pull_request:
     paths:
       - "frontend/**"
+      - "backend/**"
+      - "docker-compose*.yml"
+      - "Makefile"
       - ".github/workflows/ci-frontend.yml"
   push:
     branches:
       - main
     paths:
       - "frontend/**"
+      - "backend/**"
+      - "docker-compose*.yml"
+      - "Makefile"
       - ".github/workflows/ci-frontend.yml"
 
 jobs:
@@ -50,8 +56,11 @@ jobs:
       - name: Instala o Chromium do Playwright
         run: npx playwright install --with-deps chromium
 
-      - name: Executa os testes E2E
-        run: npm run test:e2e
+      # Sobe a stack isolada do Compose (db, backend, frontend), roda o
+      # Playwright contra ela e derruba tudo ao final.
+      - name: Executa os testes E2E pela stack do Compose
+        working-directory: .
+        run: make e2e
 
       - name: Upload Playwright Report
         if: failure()
