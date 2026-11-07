@@ -25,7 +25,12 @@ def get_item(item_id: int, db: Session = Depends(get_db)):
 
 @router.post("", response_model=Item, status_code=status.HTTP_201_CREATED)
 def create_item(data: ItemCreate, db: Session = Depends(get_db)):
-    return item_service.create_item(db, data)
+    try:
+        return item_service.create_item(db, data)
+    except item_service.DuplicateItemNameError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
 
 
 @router.put("/{item_id}", response_model=Item)
@@ -36,6 +41,10 @@ def replace_item(item_id: int, data: ItemCreate, db: Session = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
         ) from exc
+    except item_service.DuplicateItemNameError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
+        ) from exc
 
 
 @router.patch("/{item_id}", response_model=Item)
@@ -45,6 +54,10 @@ def update_item(item_id: int, data: ItemUpdate, db: Session = Depends(get_db)):
     except item_service.ItemNotFoundError as exc:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(exc)
+        ) from exc
+    except item_service.DuplicateItemNameError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT, detail=str(exc)
         ) from exc
 
 

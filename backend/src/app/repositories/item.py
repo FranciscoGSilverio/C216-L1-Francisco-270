@@ -19,6 +19,9 @@ class ItemRepository:
     def get(self, item_id: int) -> Item | None:
         return self.db.get(Item, item_id)
 
+    def get_by_name(self, name: str) -> Item | None:
+        return self.db.scalar(select(Item).where(Item.name == name))
+
     def add(self, data: ItemCreate) -> Item:
         item = Item(**data.model_dump())
         self.db.add(item)

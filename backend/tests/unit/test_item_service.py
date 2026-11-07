@@ -91,3 +91,13 @@ def test_delete_item_removes_it(db_session):
 def test_delete_item_raises_for_unknown_id(db_session):
     with pytest.raises(item_service.ItemNotFoundError):
         item_service.delete_item(db_session, 999)
+
+
+def test_create_item_with_duplicate_name_raises_error(db_session):
+    item_service.create_item(db_session, ItemCreate(name="Caneta"))
+
+    with pytest.raises(item_service.DuplicateItemNameError) as exc_info:
+        item_service.create_item(db_session, ItemCreate(name="Caneta"))
+
+    assert exc_info.value.name == "Caneta"
+    assert str(exc_info.value) == "Já existe um item com esse nome"

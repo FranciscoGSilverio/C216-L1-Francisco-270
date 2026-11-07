@@ -99,3 +99,52 @@ def test_delete_item_returns_404_for_unknown_id(client):
     response = client.delete("/items/999")
 
     assert response.status_code == 404
+
+
+def test_create_item_with_duplicate_name_returns_409(client):
+    client.post("/items", json={"name": "Caneta"})
+
+    response = client.post("/items", json={"name": "Caneta"})
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Já existe um item com esse nome"
+
+
+def test_put_with_name_of_another_item_returns_409(client):
+    client.post("/items", json={"name": "Caneta"})
+    other = client.post("/items", json={"name": "Caderno"}).json()
+
+    response = client.put(f"/items/{other['id']}", json={"name": "Caneta"})
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Já existe um item com esse nome"
+
+
+def test_patch_with_name_of_another_item_returns_409(client):
+    client.post("/items", json={"name": "Caneta"})
+    other = client.post("/items", json={"name": "Caderno"}).json()
+
+    response = client.patch(f"/items/{other['id']}", json={"name": "Caneta"})
+
+    assert response.status_code == 409
+    assert response.json()["detail"] == "Já existe um item com esse nome"
+
+
+def test_put_and_patch_keeping_own_name_return_200(client):
+    item = client.post("/items", json={"name": "Caneta"}).json()
+
+    put = client.put(
+        f"/items/{item['id']}", json={"name": "Caneta", "description": "azul"}
+    )
+    patch = client.patch(f"/items/{item['id']}", json={"name": "Caneta"})
+
+    assert put.status_code == 200
+    assert patch.status_code == 200
+
+
+def test_names_differing_only_by_case_are_distinct(client):
+    first = client.post("/items", json={"name": "Caneta"})
+    second = client.post("/items", json={"name": "caneta"})
+
+    assert first.status_code == 201
+    assert second.status_code == 201

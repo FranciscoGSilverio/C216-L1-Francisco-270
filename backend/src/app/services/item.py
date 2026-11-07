@@ -11,6 +11,20 @@ class ItemNotFoundError(Exception):
         super().__init__(f"Item {item_id} não encontrado")
 
 
+class DuplicateItemNameError(Exception):
+    def __init__(self, name: str) -> None:
+        self.name = name
+        super().__init__("Já existe um item com esse nome")
+
+
+def _ensure_name_available(
+    repository: ItemRepository, name: str, item_id: int | None = None
+) -> None:
+    existing = repository.get_by_name(name)
+    if existing is not None and existing.id != item_id:
+        raise DuplicateItemNameError(name)
+
+
 def list_items(db: Session, limit: int | None = None) -> list[Item]:
     return ItemRepository(db).list(limit=limit)
 
@@ -24,11 +38,15 @@ def get_item(db: Session, item_id: int) -> Item:
 
 
 def create_item(db: Session, data: ItemCreate) -> Item:
-    return ItemRepository(db).add(data)
+    repository = ItemRepository(db)
+    _ensure_name_available(repository, data.name)
+    return repository.add(data)
 
 
 def replace_item(db: Session, item_id: int, data: ItemCreate) -> Item:
-    item = ItemRepository(db).replace(item_id, data)
+    repository = ItemRepository(db)
+    _ensure_name_available(repository, data.name, item_id)
+    item = repository.replace(item_id, data)
     if item is None:
         raise ItemNotFoundError(item_id)
 
@@ -36,7 +54,10 @@ def replace_item(db: Session, item_id: int, data: ItemCreate) -> Item:
 
 
 def update_item(db: Session, item_id: int, data: ItemUpdate) -> Item:
-    item = ItemRepository(db).update(item_id, data)
+    repository = ItemRepository(db)
+    if data.name is not None:
+        _ensure_name_available(repository, data.name, item_id)
+    item = repository.update(item_id, data)
     if item is None:
         raise ItemNotFoundError(item_id)
 
