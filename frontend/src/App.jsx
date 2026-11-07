@@ -1,12 +1,18 @@
 import { useEffect, useState } from "react";
 import { ItemForm } from "./components/ItemForm";
 import { ItemList } from "./components/ItemList";
-import { createItem, listItems } from "./services/items";
+import {
+  createItem,
+  deleteItem,
+  listItems,
+  replaceItem,
+} from "./services/items";
 
 export default function App() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState("");
+  const [actionError, setActionError] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -31,6 +37,21 @@ export default function App() {
     setItems((current) => [...current, created]);
   }
 
+  async function editItem(id, values) {
+    const updated = await replaceItem(id, values);
+    setItems((current) => current.map((i) => (i.id === id ? updated : i)));
+  }
+
+  async function removeItem(id) {
+    setActionError("");
+    try {
+      await deleteItem(id);
+      setItems((current) => current.filter((i) => i.id !== id));
+    } catch (error) {
+      setActionError(error.message);
+    }
+  }
+
   return (
     <main className="mx-auto min-h-screen max-w-xl space-y-6 p-4 sm:p-6">
       <h1 className="text-3xl font-bold">Gerenciador de Itens</h1>
@@ -49,7 +70,14 @@ export default function App() {
             {loadError}
           </p>
         )}
-        {!loading && !loadError && <ItemList items={items} />}
+        {actionError && (
+          <p role="alert" className="text-red-700">
+            {actionError}
+          </p>
+        )}
+        {!loading && !loadError && (
+          <ItemList items={items} onEdit={editItem} onDelete={removeItem} />
+        )}
       </section>
     </main>
   );
