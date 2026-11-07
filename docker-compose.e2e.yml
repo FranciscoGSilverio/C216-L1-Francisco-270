@@ -1,0 +1,14 @@
+# Override usado apenas por `make e2e`: troca os nomes dos containers para não
+# colidir com a stack normal (c216-*) e fixa a conexão/CORS da stack isolada.
+services:
+  db:
+    container_name: lab-e2e-db
+
+  backend:
+    container_name: lab-e2e-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://postgres:postgres@db:5432/c216
+      CORS_ORIGINS: http://localhost:15173
+
+  frontend:
+    container_name: lab-e2e-frontend

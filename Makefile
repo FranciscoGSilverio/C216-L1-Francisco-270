@@ -2,7 +2,7 @@
         env up down build logs ps restart backend-shell db-shell docker-test docker-clean \
         db-upgrade db-migration db-current \
         frontend-install frontend-dev frontend-lint frontend-format frontend-check \
-        frontend-test frontend-test-e2e frontend-build check-all
+        frontend-test frontend-test-e2e frontend-build e2e check-all
 
 BACKEND_DIR := backend
 FRONTEND_DIR := frontend
@@ -13,6 +13,9 @@ RUFF := $(POETRY) run ruff
 ALEMBIC := $(POETRY) run alembic
 NPM := npm --prefix $(FRONTEND_DIR)
 COMPOSE := docker compose
+# Stack isolada do E2E (projeto lab-e2e, portas próprias, credenciais fixas):
+# não interfere na stack normal nem depende do .env, exceto pelo env_file.
+E2E_COMPOSE := POSTGRES_USER=postgres POSTGRES_PASSWORD=postgres POSTGRES_PORT=15432 BACKEND_PORT=18000 FRONTEND_PORT=15173 VITE_API_URL=http://localhost:18000 docker compose -p lab-e2e -f docker-compose.yml -f docker-compose.e2e.yml
 
 # DATABASE_URL para comandos nativos (fora do Docker): aponta para o
 # PostgreSQL do Compose via localhost, lendo as credenciais do .env — o
@@ -61,10 +64,11 @@ help:
 	@echo "    make frontend-format  - formata o código (Biome)"
 	@echo "    make frontend-check   - lint + formatação sem alterar arquivos"
 	@echo "    make frontend-test    - executa os testes (Vitest)"
-	@echo "    make frontend-test-e2e - executa os testes end-to-end (Playwright)"
+	@echo "    make frontend-test-e2e - Playwright contra a stack já no ar (E2E_BASE_URL)"
 	@echo "    make frontend-build   - build de produção"
+	@echo "    make e2e              - sobe uma stack isolada, roda o Playwright e derruba tudo"
 	@echo ""
-	@echo "  make check-all - roda tudo: backend (Ruff + Pytest) e frontend (Biome, Vitest, build, E2E)"
+	@echo "  make check-all - roda tudo: backend (Ruff + Pytest) e frontend (Biome, Vitest, build) e E2E"
 
 install:
 	$(POETRY) install
@@ -154,4 +158,14 @@ frontend-test-e2e:
 frontend-build:
 	$(NPM) run build
 
-check-all: lint test frontend-check frontend-test frontend-build frontend-test-e2e
+# Sobe a stack isolada, aplica as migrations, roda o Playwright e SEMPRE
+# derruba tudo (inclusive volumes), saindo com o status do Playwright.
+e2e: env
+	@$(E2E_COMPOSE) up -d --build --wait \
+		&& $(E2E_COMPOSE) exec -T backend alembic upgrade head \
+		&& E2E_BASE_URL=http://localhost:15173 $(NPM) run test:e2e; \
+		status=$$?; \
+		$(E2E_COMPOSE) down -v --remove-orphans; \
+		exit $$status
+
+check-all: lint test frontend-check frontend-test frontend-build e2e
