@@ -1,8 +1,10 @@
 from sqlalchemy.orm import Session
 
 from app.models.movie import Movie
+from app.repositories.cast import CastRepository
 from app.repositories.movie import MovieRepository
-from app.schemas.movie import MovieCreate
+from app.schemas.cast import CastMember
+from app.schemas.movie import MovieCreate, MovieDetail, MovieRead
 
 
 class MovieNotFoundError(Exception):
@@ -38,6 +40,19 @@ def get_movie(db: Session, movie_id: int) -> Movie:
         raise MovieNotFoundError(movie_id)
 
     return movie
+
+
+def get_movie_detail(db: Session, movie_id: int) -> MovieDetail:
+    movie = get_movie(db, movie_id)
+    cast = [
+        CastMember(
+            actor_id=member.actor_id,
+            actor_name=member.actor.name,
+            character=member.character,
+        )
+        for member in CastRepository(db).list_by_movie(movie_id)
+    ]
+    return MovieDetail(**MovieRead.model_validate(movie).model_dump(), cast=cast)
 
 
 def create_movie(db: Session, data: MovieCreate) -> Movie:

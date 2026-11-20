@@ -2,6 +2,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.models.movie import Movie
+from app.models.movie_actor import MovieActor
 from app.repositories.actor import escape_like
 from app.schemas.movie import MovieCreate
 
@@ -17,6 +18,13 @@ class MovieRepository:
         if title:
             pattern = f"%{escape_like(title)}%"
             statement = statement.where(Movie.title.ilike(pattern, escape="\\"))
+
+        if actor_id is not None:
+            statement = statement.where(
+                Movie.id.in_(
+                    select(MovieActor.movie_id).where(MovieActor.actor_id == actor_id)
+                )
+            )
 
         return list(self.db.scalars(statement))
 

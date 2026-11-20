@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.database.session import get_db
-from app.schemas.movie import MovieCreate, MovieRead
+from app.schemas.movie import MovieCreate, MovieDetail, MovieRead
 from app.services import movie as movie_service
 
 router = APIRouter(prefix="/movies", tags=["Filmes"])
@@ -17,10 +17,10 @@ def list_movies(
     return movie_service.list_movies(db, title=title, actor_id=actor_id)
 
 
-@router.get("/{movie_id}", response_model=MovieRead)
+@router.get("/{movie_id}", response_model=MovieDetail)
 def get_movie(movie_id: int, db: Session = Depends(get_db)):
     try:
-        return movie_service.get_movie(db, movie_id)
+        return movie_service.get_movie_detail(db, movie_id)
     except movie_service.MovieNotFoundError as exc:
         raise HTTPException(status.HTTP_404_NOT_FOUND, detail=str(exc)) from exc
 
