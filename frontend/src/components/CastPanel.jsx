@@ -12,6 +12,8 @@ import {
   iconButton,
   iconButtonDanger,
   input,
+  REQUIRED_MARK,
+  requiredNote,
 } from "../ui";
 import { castSchema, characterSchema } from "../validation/cast";
 import { useValidatedForm } from "../validation/useValidatedForm";
@@ -44,7 +46,7 @@ function CastRow({ member, onSave, onRemove }) {
           <div className="flex-1">
             <label
               htmlFor={`character-${member.actor_id}`}
-              className="mb-1 block text-sm font-medium text-slate-700"
+              className={`mb-1 block text-sm font-medium text-slate-700 ${REQUIRED_MARK}`}
             >
               Personagem de {member.actor_name}
             </label>
@@ -54,6 +56,7 @@ function CastRow({ member, onSave, onRemove }) {
               value={form.values.character}
               onChange={form.handleChange("character")}
               onBlur={form.handleBlur("character")}
+              aria-required="true"
               aria-invalid={form.errors.character ? "true" : undefined}
             />
             {form.errors.character && (
@@ -188,6 +191,9 @@ export default function CastPanel({ movieId, cast, actors, onChanged }) {
 
       <div className="border-t border-slate-200 pt-4">
         <h4 className="mb-3 font-medium text-slate-900">Adicionar ao elenco</h4>
+        <p className={`mb-3 ${requiredNote}`}>
+          Campos marcados com * são obrigatórios.
+        </p>
         {actors.length === 0 ? (
           <Notice type="info">
             Cadastre atores para montar o elenco.{" "}
@@ -204,6 +210,7 @@ export default function CastPanel({ movieId, cast, actors, onChanged }) {
             <FormField
               label="Ator"
               name="actor_id"
+              required
               as="select"
               value={form.values.actor_id}
               onChange={form.handleChange("actor_id")}
@@ -220,6 +227,7 @@ export default function CastPanel({ movieId, cast, actors, onChanged }) {
             <FormField
               label="Personagem"
               name="character"
+              required
               value={form.values.character}
               onChange={form.handleChange("character")}
               onBlur={form.handleBlur("character")}

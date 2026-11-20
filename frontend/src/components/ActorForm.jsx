@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { buttonPrimary, buttonSecondary } from "../ui";
+import { buttonPrimary, buttonSecondary, requiredNote } from "../ui";
 import { actorSchema } from "../validation/actor";
 import { useValidatedForm } from "../validation/useValidatedForm";
 import FormField from "./FormField";
@@ -39,9 +39,11 @@ export default function ActorForm({
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       {apiError && <Notice type="error">{apiError}</Notice>}
+      <p className={requiredNote}>Campos marcados com * são obrigatórios.</p>
       <FormField
         label="Nome"
         name="name"
+        required
         value={form.values.name}
         onChange={form.handleChange("name")}
         onBlur={form.handleBlur("name")}

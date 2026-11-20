@@ -230,3 +230,17 @@ it("mostra o erro 404 de filme inexistente no detalhe", async () => {
     "Filme não encontrado",
   );
 });
+
+it("marca ator e personagem como obrigatórios ao adicionar ao elenco", async () => {
+  mockApi({ "GET /movies/1": [200, movie()], "GET /actors": [200, [ana]] });
+  renderApp("/filmes/1");
+
+  expect(await screen.findByLabelText("Ator")).toHaveAttribute(
+    "aria-required",
+    "true",
+  );
+  expect(screen.getByLabelText("Personagem")).toHaveAttribute(
+    "aria-required",
+    "true",
+  );
+});

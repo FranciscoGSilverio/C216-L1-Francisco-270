@@ -201,3 +201,19 @@ it("mostra a página 404 para rotas inexistentes", () => {
 
   expect(screen.getByText("Página não encontrada")).toBeInTheDocument();
 });
+
+it("marca o nome como obrigatório no formulário de ator", async () => {
+  mockApi({});
+  renderApp("/atores/novo");
+
+  expect(screen.getByLabelText("Nome")).toHaveAttribute(
+    "aria-required",
+    "true",
+  );
+  expect(screen.getByLabelText("Nacionalidade")).not.toHaveAttribute(
+    "aria-required",
+  );
+  expect(
+    screen.getByText("Campos marcados com * são obrigatórios."),
+  ).toBeInTheDocument();
+});

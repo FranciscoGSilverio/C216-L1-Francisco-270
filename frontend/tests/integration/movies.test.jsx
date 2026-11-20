@@ -151,3 +151,15 @@ it("exclui um filme da lista somente após confirmar no modal", async () => {
     await screen.findByText("Filme excluído com sucesso."),
   ).toBeInTheDocument();
 });
+
+it("marca título e ano como obrigatórios no formulário de filme", () => {
+  mockApi({});
+  renderApp("/filmes/novo");
+
+  expect(screen.getByLabelText("Título")).toHaveAttribute(
+    "aria-required",
+    "true",
+  );
+  expect(screen.getByLabelText("Ano")).toHaveAttribute("aria-required", "true");
+  expect(screen.getByLabelText("Gênero")).not.toHaveAttribute("aria-required");
+});

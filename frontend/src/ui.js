@@ -12,3 +12,7 @@ export const iconButton =
   "inline-flex items-center rounded p-2 text-slate-600 hover:bg-slate-100";
 export const iconButtonDanger =
   "inline-flex items-center rounded p-2 text-red-600 hover:bg-red-50";
+// Asterisco de campo obrigatório, desenhado por CSS para não entrar no nome acessível do rótulo.
+export const REQUIRED_MARK =
+  "after:ml-0.5 after:text-red-600 after:content-['*']";
+export const requiredNote = "text-sm text-slate-500";

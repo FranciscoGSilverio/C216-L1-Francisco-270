@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { buttonPrimary, buttonSecondary } from "../ui";
+import { buttonPrimary, buttonSecondary, requiredNote } from "../ui";
 import { movieSchema } from "../validation/movie";
 import { useValidatedForm } from "../validation/useValidatedForm";
 import FormField from "./FormField";
@@ -40,9 +40,11 @@ export default function MovieForm({
   return (
     <form onSubmit={handleSubmit} noValidate className="space-y-4">
       {apiError && <Notice type="error">{apiError}</Notice>}
+      <p className={requiredNote}>Campos marcados com * são obrigatórios.</p>
       <FormField
         label="Título"
         name="title"
+        required
         value={form.values.title}
         onChange={form.handleChange("title")}
         onBlur={form.handleBlur("title")}
@@ -51,6 +53,7 @@ export default function MovieForm({
       <FormField
         label="Ano"
         name="year"
+        required
         inputMode="numeric"
         value={form.values.year}
         onChange={form.handleChange("year")}
