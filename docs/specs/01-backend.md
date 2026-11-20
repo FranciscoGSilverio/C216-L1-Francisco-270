@@ -60,4 +60,4 @@ Infraestrutura de contêineres e Makefile (Spec 02), frontend (Spec 03), E2E e C
 
 Aprovado por: Francisco  Data: 19/11/2026
 
-Observações do revisor:
+Observações do revisor: revisão do backend concluída e aprovada em 19/11/2026.
