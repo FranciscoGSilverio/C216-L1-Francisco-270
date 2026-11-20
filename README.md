@@ -2,6 +2,9 @@
 
 Projeto Final da disciplina C216 (Sistemas Distribuídos), semestre 2026.2.
 
+> ### 🎬 [Assista ao vídeo demonstrativo](https://www.youtube.com/watch?v=5IvwunH7SAM)
+> Apresentação do projeto, arquitetura, execução com Docker Compose, demonstração e testes.
+
 ## Objetivo e tema
 
 Aplicação web full-stack para manter um catálogo de cinema: cadastrar **filmes** e **atores**
@@ -187,4 +190,4 @@ domínio, a revisão, as correções e a verificação são do desenvolvedor. O 
 
 ## Vídeo demonstrativo
 
-[Assistir ao vídeo demonstrativo](https://www.youtube.com/watch?v=5IvwunH7SAM)
+### 🎬 [Assistir ao vídeo demonstrativo no YouTube](https://www.youtube.com/watch?v=5IvwunH7SAM)
