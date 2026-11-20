@@ -126,3 +126,8 @@ Autenticação, paginação, E2E (Spec 04), tema escuro e animações.
 Aprovado por: Francisco  Data: 19/11/2026
 
 Observações do revisor:
+
+- 19/11/2026 — correção solicitada pelo desenvolvedor após a revisão do frontend: campos obrigatórios
+  (nome do ator; título e ano do filme; ator e personagem no elenco) exibem um asterisco
+  vermelho no rótulo, desenhado por CSS para não alterar o nome acessível, com `aria-required`
+  no campo e a nota "Campos marcados com * são obrigatórios." nos formulários.
