@@ -1,0 +1,90 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  lint:
+    name: Ruff (Lint & Format)
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instala o Poetry
+        run: pipx install poetry
+
+      - name: Configura o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+          cache-dependency-path: backend/poetry.lock
+
+      - name: Instala as dependências
+        run: poetry install --no-root
+
+      - name: Verifica a formatação
+        run: poetry run ruff format --check .
+
+      - name: Executa o lint
+        run: poetry run ruff check .
+
+  test:
+    name: Pytest
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    # Senha descartável derivada do id da execução: nada de senha literal no repositório.
+    env:
+      DATABASE_URL: postgresql+psycopg://cinema:ci-${{ github.run_id }}-${{ github.run_attempt }}@localhost:5432/cinema_test
+
+    services:
+      db:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: cinema
+          POSTGRES_PASSWORD: ci-${{ github.run_id }}-${{ github.run_attempt }}
+          POSTGRES_DB: cinema_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U cinema -d cinema_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+
+      - name: Instala o Poetry
+        run: pipx install poetry
+
+      - name: Configura o Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "poetry"
+          cache-dependency-path: backend/poetry.lock
+
+      - name: Instala as dependências
+        run: poetry install
+
+      - name: Aplica as migrations
+        run: poetry run alembic upgrade head
+
+      - name: Confere que os models e as migrations estão em sincronia
+        run: poetry run alembic check
+
+      - name: Executa os testes
+        run: poetry run pytest
