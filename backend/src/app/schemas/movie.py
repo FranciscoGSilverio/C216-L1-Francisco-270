@@ -3,6 +3,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
+from app.schemas.cast import CastMember
+
 MIN_YEAR = 1888
 MAX_YEARS_AHEAD = 5
 
@@ -53,3 +55,7 @@ class MovieRead(BaseModel):
     year: int
     genre: str | None = None
     synopsis: str | None = None
+
+
+class MovieDetail(MovieRead):
+    cast: list[CastMember] = []
