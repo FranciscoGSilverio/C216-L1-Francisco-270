@@ -131,3 +131,4 @@ Observações do revisor:
   (nome do ator; título e ano do filme; ator e personagem no elenco) exibem um asterisco
   vermelho no rótulo, desenhado por CSS para não alterar o nome acessível, com `aria-required`
   no campo e a nota "Campos marcados com * são obrigatórios." nos formulários.
+- 19/11/2026 — revisão do frontend concluída e aprovada em 19/11/2026.
