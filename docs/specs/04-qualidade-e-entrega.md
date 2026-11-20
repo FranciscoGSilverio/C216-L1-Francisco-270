@@ -101,3 +101,4 @@ trailer de IA (ver `CLAUDE.md`).
 Aprovado por: Francisco  Data: 19/11/2026
 
 Observações do revisor:
+- 19/11/2026 — revisão do bloco (E2E, CI, README e divulgação de IA) concluída e aprovada; autorizado o push e a abertura do PR.
