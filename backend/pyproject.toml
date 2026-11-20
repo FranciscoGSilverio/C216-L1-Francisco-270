@@ -1,0 +1,35 @@
+[project]
+name = "backend"
+version = "0.1.0"
+description = "API de filmes e atores do projeto Cinema"
+authors = [
+    {name = "FranciscoGSilverio"}
+]
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi (>=0.141.1,<0.142.0)",
+    "uvicorn (>=0.52.4,<0.53.0)",
+    "sqlalchemy (>=2.0,<2.1)",
+    "psycopg[binary] (>=3.3.6,<4.0.0)",
+    "alembic (>=1.20.0,<2.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "app", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=9.1.1,<10.0.0)",
+    "ruff (>=0.16.4,<0.17.0)",
+    "httpx (>=0.28.1,<0.29.0)"
+]
+
+[tool.ruff.lint]
+# B008: FastAPI usa chamadas de função (Depends(...)) como valor padrão de
+# parâmetro de propósito — é o mecanismo de injeção de dependência do
+# framework, não um bug.
+ignore = ["B008"]

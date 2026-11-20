@@ -1,0 +1,28 @@
+# Ambiente virtual local
+.venv/
+venv/
+
+# Cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+
+# Variáveis de ambiente
+.env
+
+# Git
+.git/
+.gitignore
+
+# Arquivos do próprio Docker
+Dockerfile
+.dockerignore
+
+# IDE
+.vscode/
+.idea/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

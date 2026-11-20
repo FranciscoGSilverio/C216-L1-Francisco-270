@@ -1,0 +1,12 @@
+# Sobreposição usada apenas por `make e2e`: troca os nomes dos contêineres para
+# não colidir com a stack normal (cinema-*). Portas, credenciais e CORS da stack
+# isolada chegam por variáveis de ambiente definidas pelo próprio Makefile.
+services:
+  db:
+    container_name: cinema-e2e-db
+
+  backend:
+    container_name: cinema-e2e-backend
+
+  frontend:
+    container_name: cinema-e2e-frontend
