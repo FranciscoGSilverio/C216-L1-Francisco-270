@@ -1,6 +1,8 @@
 .PHONY: help install test lint format run clean \
         env up down build logs ps restart backend-shell db-shell docker-test docker-clean \
-        test-db db-upgrade db-downgrade db-current db-history db-migration
+        test-db db-upgrade db-downgrade db-current db-history db-migration \
+        frontend-install frontend-dev frontend-lint frontend-format frontend-check \
+        frontend-test frontend-build
 
 BACKEND_DIR := backend
 POETRY := cd $(BACKEND_DIR) && poetry
@@ -8,6 +10,7 @@ PYTEST := $(POETRY) run pytest
 UVICORN := $(POETRY) run uvicorn
 RUFF := $(POETRY) run ruff
 ALEMBIC := $(POETRY) run alembic
+NPM := npm --prefix frontend
 COMPOSE := docker compose
 
 # Comandos nativos (fora do Docker) falam com o PostgreSQL do Compose via
@@ -50,6 +53,15 @@ help:
 	@echo "    make db-current             - mostra a revisão atual"
 	@echo "    make db-history             - lista as migrations"
 	@echo "    make db-migration msg=\"...\" - cria uma migration (autogenerate)"
+	@echo ""
+	@echo "  Frontend:"
+	@echo "    make frontend-install - instala as dependências (npm ci)"
+	@echo "    make frontend-dev     - inicia o servidor de desenvolvimento (Vite)"
+	@echo "    make frontend-lint    - verifica o código (Biome)"
+	@echo "    make frontend-format  - formata o código (Biome)"
+	@echo "    make frontend-check   - lint + formatação sem alterar arquivos"
+	@echo "    make frontend-test    - executa os testes (Vitest)"
+	@echo "    make frontend-build   - build de produção"
 
 install:
 	$(POETRY) install
@@ -127,3 +139,24 @@ db-history:
 
 db-migration:
 	export DATABASE_URL=$(DATABASE_URL_LOCAL); $(ALEMBIC) revision --autogenerate -m "$(msg)"
+
+frontend-install:
+	$(NPM) ci
+
+frontend-dev:
+	$(NPM) run dev
+
+frontend-lint:
+	$(NPM) run lint
+
+frontend-format:
+	$(NPM) run format
+
+frontend-check:
+	$(NPM) run check
+
+frontend-test:
+	$(NPM) run test
+
+frontend-build:
+	$(NPM) run build
