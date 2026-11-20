@@ -70,4 +70,4 @@ Na etapa B: `frontend-install frontend-check frontend-test frontend-build`.
 
 Aprovado por: Francisco  Data: 19/11/2026
 
-Observações do revisor:
+Observações do revisor: em 19/11/2026 o desenvolvedor autorizou parar os contêineres da Prática 7 (`c216-*`) e liberar as portas 5432, 8000 e 5173 para a validação da stack do projeto. Os contêineres foram apenas parados, sem remover volumes ou imagens.
