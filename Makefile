@@ -2,7 +2,7 @@
         env up down build logs ps restart backend-shell db-shell docker-test docker-clean \
         test-db db-upgrade db-downgrade db-current db-history db-migration \
         frontend-install frontend-dev frontend-lint frontend-format frontend-check \
-        frontend-test frontend-build
+        frontend-test frontend-build e2e check-all
 
 BACKEND_DIR := backend
 POETRY := cd $(BACKEND_DIR) && poetry
@@ -12,6 +12,9 @@ RUFF := $(POETRY) run ruff
 ALEMBIC := $(POETRY) run alembic
 NPM := npm --prefix frontend
 COMPOSE := docker compose
+# Stack isolada do E2E: projeto próprio, portas próprias e senha do banco
+# aleatória a cada execução. Não depende do .env nem toca a stack normal.
+E2E_COMPOSE := docker compose -p cinema-e2e -f docker-compose.yml -f docker-compose.e2e.yml
 
 # Comandos nativos (fora do Docker) falam com o PostgreSQL do Compose via
 # localhost, lendo as credenciais do .env. Nada de senha escrita neste arquivo.
@@ -62,6 +65,9 @@ help:
 	@echo "    make frontend-check   - lint + formatação sem alterar arquivos"
 	@echo "    make frontend-test    - executa os testes (Vitest)"
 	@echo "    make frontend-build   - build de produção"
+	@echo "    make e2e              - sobe uma stack isolada, roda o Playwright e derruba tudo"
+	@echo ""
+	@echo "  make check-all - lint, testes do backend e do frontend, build e E2E"
 
 install:
 	$(POETRY) install
@@ -160,3 +166,17 @@ frontend-test:
 
 frontend-build:
 	$(NPM) run build
+
+# Sobe a stack isolada, roda o Playwright e SEMPRE derruba tudo (inclusive
+# volumes), saindo com o status do Playwright. As migrations rodam no `up`.
+e2e:
+	@export POSTGRES_USER=cinema POSTGRES_PASSWORD=$$(openssl rand -hex 16) POSTGRES_DB=cinema \
+		POSTGRES_PORT=15432 BACKEND_PORT=18000 FRONTEND_PORT=15173 \
+		VITE_API_URL=http://localhost:18000 CORS_ORIGINS=http://localhost:15173; \
+	$(E2E_COMPOSE) up -d --build --wait \
+		&& E2E_BASE_URL=http://localhost:15173 $(NPM) run test:e2e; \
+	status=$$?; \
+	$(E2E_COMPOSE) down -v --remove-orphans; \
+	exit $$status
+
+check-all: lint test frontend-check frontend-test frontend-build e2e
